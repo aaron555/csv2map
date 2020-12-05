@@ -1,7 +1,14 @@
 # csv2map
-A fork of fail2ban-analyse providing more generic point location mapping from CSV containing coordinates and a label
+A fork of fail2ban-analyse providing more generic point location mapping from CSV containing coordinates and one or more data item(s) which form label(s).
 
-Currently only supports 3 column CSV input - latitude,longitude,label.  Must have exactly one header line, and third element (header entry for labels) will be used to title all the labels (pop-ups)
+Converts arbitrary size CSV input - latitude,longitude,label1[,label2,label3,...] to GeoJSON feature set, to plot all points as a map overlay
+
+CSV must have exactly one header line, and it must contain at least as many columns as all the subsequent data.  There must be at least one data line, and at least one column of labels (min 3 columns in total)
+The first column MUST be the decimal latitude and the second column MUST be the decimal longitude.  This will be assumed and headers ignored.
+Each subsequent column contains the labels, which will be displayed (preceded by respective header column) on the relevant pop-up
+
+Each popup on the map will contain the latitude and longitude in bold on the first line, and then contain an additional line for each additional column in the CSV
+Each subsequent line of the pop-up will be in form "Header: data" and the feature 'name' property will be the first item of data (column 3)
 
 See header comments for more information (and fail2ban-analyse README)
 

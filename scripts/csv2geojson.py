@@ -1,16 +1,20 @@
 #!/usr/bin/env python3
 
-# Convert CSV file GeoJSON feature collection for overlaying on LeafletJS map
+# Convert CSV file to GeoJSON feature collection for overlaying on LeafletJS map
 
 # Syntax: csv2geojson.py <input CSV file/path> [<Output GeoJSON file/path>]
 
-# <input CSV file/path> - File/path of CSV - CSV must have exactly 3 columns - 'latitude, longitude, label'  - note header of 'label' column will be used as name
+# <input CSV file/path> - File/path of CSV - CSV must have at least 3 columns - 'latitude, longitude, label[, ...]'  - note header of column 3-> will be used as names for respective data
 # NOTE the first column MUST be the decimal latitude and the second column MUST be the decimal longitude.  This will be assumed and headers ignored.
+# There must be exactly one header row, and it must contain at least as many columns as all the subsequent data
 # If <Output GeoJSON file/path> is not specified default "points-geojson.js" will be used - note if this file exists it will be over-written
 
 # Example calls:
 # csv2geojson.py "input_file.csv"
 # csv2geojson.py "/tmp/input_file.csv" "/var/www/html/mygeojsonfile.js"
+
+# Each popup on the map will contain the latitude and longitude in bold, and then contain an additional line for each additional column in the CSV
+# Each subsequent line will be in form "Header: data"
 
 # Changelog
 # 02/12/2020 - First Version
@@ -65,9 +69,10 @@ if os.path.isfile(json_output) == 1:
 
 
 # Set up output arrays
+labels = []
 lats = []
 lons = []
-labels = []
+output_array = []
 
 # Read in values from CSV
 print("Opening CSV file %s and importing data..." % csv_input)
@@ -76,20 +81,27 @@ try:
     csv_reader = csv.reader(csv_data, delimiter=',')
     line_count = 0
     for row in csv_reader:
+      # First row must be header
       if line_count == 0:
-        # Assume first and second element are lat,lon - ignore everything after third column
-        labels_description = row[2]
+        # Assume first and second row are lat,lon, ignore headers
+        for ii, label in enumerate(row):
+          if ii > 1:
+            labels.append(label)
         line_count += 1
       else:
-        try:
-          rowlat = float(row[0])
-          rowlon = float(row[1])
-          labels.append(row[2])
-          lats.append(rowlat)
-          lons.append(rowlon)
-          line_count += 1
-        except:
-          print("WARNING: Ignoring invalid line: "+", ".join(row))
+        if len(row) <= len(labels)+2 and len(row) >= 3:
+          try:
+            rowlat = float(row[0])
+            rowlon = float(row[1])
+            lats.append(rowlat)
+            lons.append(rowlon)
+            output_array.append(row[2:])
+          except:
+            # Missing Lat, Lon will through exception - this data is useless
+            print("WARNING: Ignoring invalid line: "+", ".join(row))
+        else:
+          # More columns than header not accepted - however missing data or columns is OK (of course if completely missing not empty will be incorrectly labelled)
+          print("WARNING: Ignoring invalid line (number of elements exceeds header, or contains only coordinates with no label): "+", ".join(row))
 except IOError:
   print("ERROR: Cannot read from file (check permissions?): "+csv_input)
   sys.exit(1)
@@ -98,8 +110,11 @@ except IOError:
 print("Creating GeoJSON features and writing to file "+json_output)
 feature_collection = {"type": "FeatureCollection", "features": []}
 
-for  lon, lat, label in zip(lons, lats, labels):
-  feature_element = Feature(geometry=Point(([lon, lat])), properties={"name": labels_description+": "+label, "popupContent": "<b>"+str(lon)+", "+str(lat)+"</b><br />"+labels_description+": "+label})
+for  lon, lat, data in zip(lons, lats, output_array):
+  popupstr="<b>"+str(lat)+", "+str(lon)
+  for ii,element in enumerate(data):
+    popupstr+="</b><br />"+labels[ii]+": "+element
+  feature_element = Feature(geometry=Point(([lon, lat])), properties={"name": labels[0]+": "+data[0], "popupContent": popupstr})
   feature_collection["features"].append(feature_element)
 
 try:
