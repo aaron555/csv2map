@@ -24,6 +24,7 @@ See header comments for more information (and fail2ban-analyse README)
 ## Example outputs
 
 ![Selected UK cities](examples/UK-cities.png)
+https://aaronlockton.com/raspi/static/locations-map.html
 
 Example shows a selection of the most populus UK cities, with approximate populations.  Image below shows the form of CSV used for input data (data credit: https://simplemaps.com/data/gb-cities)
 
