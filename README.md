@@ -30,6 +30,12 @@ Example shows a selection of the most populus UK cities, with approximate popula
 
 ![Selected UK cities - input data](examples/UK-cities-input-csv.png)
 
+## Dependencies
+
+- Python GeoJSON - install using 'pip3 install geojson'
+- A Mapbox API key (if using Mapbox data)
+- A webserver
+
 ## References
 
 - https://leafletjs.com/
