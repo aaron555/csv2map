@@ -18,8 +18,9 @@
 
 # Changelog
 # 02/12/2020 - First Version
+# 12/04/2021 - Improved error handling and user feedback
 
-# Copyright (C) 2020 Aaron Lockton
+# Copyright (C) 2020,2021 Aaron Lockton
 
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -96,6 +97,7 @@ try:
             lats.append(rowlat)
             lons.append(rowlon)
             output_array.append(row[2:])
+            line_count += 1
           except:
             # Missing Lat, Lon will through exception - this data is useless
             print("WARNING: Ignoring invalid line: "+", ".join(row))
@@ -106,16 +108,25 @@ except IOError:
   print("ERROR: Cannot read from file (check permissions?): "+csv_input)
   sys.exit(1)
 
+# Check input data
+if line_count < 2:
+  print("ERROR: Input CSV must contain at least 1 header line AND one data line")
+  sys.exit(1)
+else:
+  print("Read "+str(line_count)+" lines from input CSV (inc header)")
+
 # Create GeoJSON features
 print("Creating GeoJSON features and writing to file "+json_output)
 feature_collection = {"type": "FeatureCollection", "features": []}
 
+location_counter = 0
 for  lon, lat, data in zip(lons, lats, output_array):
   popupstr="<b>"+str(lat)+", "+str(lon)
   for ii,element in enumerate(data):
     popupstr+="</b><br />"+labels[ii]+": "+element
   feature_element = Feature(geometry=Point(([lon, lat])), properties={"name": labels[0]+": "+data[0], "popupContent": popupstr})
   feature_collection["features"].append(feature_element)
+  location_counter+=1
 
 try:
   with open(json_output, 'w') as out:
@@ -127,4 +138,4 @@ except IOError:
 with open(json_output, 'a') as out:
   dump(feature_collection, out)
 
-print(strftime("%Y-%m-%d_%H:%M:%S: Completed conversion of data from CSV to GeoJSON", gmtime()))
+print(strftime("%Y-%m-%d_%H:%M:%S: Completed conversion of data from CSV to GeoJSON", gmtime())+", wrote "+str(location_counter)+" location(s) to file")
