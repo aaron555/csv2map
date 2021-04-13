@@ -24,10 +24,17 @@ See header comments for more information (and fail2ban-analyse README)
 ## Example outputs
 
 ![Selected UK cities](examples/UK-cities.png)
+https://aaronlockton.com/raspi/static/locations-map.html
 
 Example shows a selection of the most populus UK cities, with approximate populations.  Image below shows the form of CSV used for input data (data credit: https://simplemaps.com/data/gb-cities)
 
 ![Selected UK cities - input data](examples/UK-cities-input-csv.png)
+
+## Dependencies
+
+- Python GeoJSON - install using 'pip3 install geojson'
+- A Mapbox API key (if using Mapbox data)
+- A webserver
 
 ## References
 
